@@ -22,6 +22,19 @@ class Person(BaseModel):
     is_married: Optional[bool] = Field(default=None)
     email: Optional[EmailStr] = Field(default=None)
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "first_name": "Julian",
+                "last_name": "Martinez Villarreal",
+                "age": 21,
+                "height": 181,
+                "hair_color": "Black",
+                "is_married": False,
+                "email": "julian@martinez.com"
+            }
+        }
+
 class Location(BaseModel):
     city: str
     country: str
@@ -45,9 +58,15 @@ def person_detail(
     name: Optional[str] = Query(
         default=None, min_length=1, max_length=50, 
         title='Person Nam',
-        description="This is a person name."
+        description="This is a person name.",
+        example="Alba"
         ),
-    age: int = Query(..., title="Person Age", description="This a person age.")
+    age: int = Query(
+        ..., 
+        title="Person Age", 
+        description="This a person age.",
+        example=25
+        )
     ):
     return {name: age}
 
@@ -57,7 +76,8 @@ def person_detail(
 def person_detail(
     person_id: int = Path(..., gt=0, 
         title="Person ID", 
-        description="This is the person ID."
+        description="This is the person ID.", 
+        example=154548
     )):
     return {person_id: "Success"}
 
@@ -68,11 +88,12 @@ def update_person(
     person_id: int = Path(
         ..., gt=0, 
         title="Person ID", 
-        description="This is the person ID."
+        description="This is the person ID.",
+        example=123,
     ),
     person: Person = Body(...), 
-    location: Location = Body(...)
+    #location: Location = Body(...)
 ):
-    results = person.dict()
-    results.update(location.dict()) 
-    return results
+    #results = person.dict()
+    #results.update(location.dict()) 
+    return person
