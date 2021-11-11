@@ -1,6 +1,9 @@
 from typing import  Optional
+from fastapi.datastructures import UploadFile
+from fastapi.param_functions import Header
 from pydantic import BaseModel, Field, EmailStr
-from fastapi import FastAPI, Body, Query, Path
+from fastapi import FastAPI, Body, Query, Path, status, Form, Header, Cookie
+from fastapi import UploadFile, File
 from enum import Enum
 
 app = FastAPI()
@@ -40,6 +43,9 @@ class Location(BaseModel):
     country: str
     state: str
 
+class LoginOut(BaseModel):
+    username: str = Field(..., max_length=20, example='jumar98')
+    message: str = Field(default="User logged with success!!")
 
 @app.get('/')
 def home():
@@ -97,3 +103,55 @@ def update_person(
     #results = person.dict()
     #results.update(location.dict()) 
     return person
+
+# Forms
+
+@app.post(
+    path='/login',
+    response_model=LoginOut,
+    status_code=status.HTTP_200_OK
+)
+def login(username: str = Form(...), password: str = Form(...)):
+    return LoginOut(username=username)
+
+
+# Cookies and headers parameters
+
+@app.post(
+    path="/contact", 
+    status_code=status.HTTP_200_OK
+)
+def contact(
+    first_name: str = Form(
+        ...,
+        max_length=20,
+        min_length=1
+    ),
+    last_name: str = Form(
+        ...,
+        max_length=20,
+        min_length=1
+    ),
+    email: EmailStr = Form(...),
+    message: str = Form(
+        ...,
+        min_length=20
+    ),
+    user_agent: Optional[str] = Header(default=None),
+    ads: Optional[str] = Cookie(default=None)
+):
+    return user_agent
+
+# Uploading files
+
+@app.post(
+    path='/post-image'
+)
+def post_image(
+    image: UploadFile = File(...)
+):
+    return {
+        'filename': image.filename,
+        'format': image.content_type,
+        'size': round(len(image.file.read()) / 1024, 2)
+    }
